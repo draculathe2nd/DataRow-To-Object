@@ -1,0 +1,98 @@
+ public static class AppExtensions
+    {
+       
+
+        public static DataRow ConvertObjectToDataRow(this object _Objects, DataTable Table)
+        {
+            try
+            {
+
+                DataRow UpdateDr = Table.NewRow();
+                PropertyInfo[] propertyInfo = (_Objects).GetType().GetProperties();
+                foreach (PropertyInfo propertyValue in propertyInfo)
+                {
+                    if ((propertyValue.GetValue(_Objects, null) != null) && (_Objects.GetType().GetProperty(propertyValue.Name) != null) && (UpdateDr.Table.Columns.Contains(propertyValue.Name)))
+                    {
+                        UpdateDr[propertyValue.Name] = propertyValue.GetValue(_Objects, null);
+                    }
+                }
+                return UpdateDr;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+
+
+        public static object ConvertDataRowToObject(this DataRow dr, object obj)
+        {
+            try
+            {
+                PropertyInfo[] propertyInfo = obj.GetType().GetProperties();
+                foreach (PropertyInfo propertyValue in propertyInfo)
+                {
+                    if ((obj.GetType().GetProperty(propertyValue.Name) != null) && (dr.Table.Columns.Contains(propertyValue.Name)))
+                    {
+                        if (!string.IsNullOrEmpty(dr[propertyValue.Name].ToString()))
+                        {
+                            if (propertyValue.PropertyType.ToString() == "System.Nullable`1[System.DateTime]"|| propertyValue.PropertyType.ToString() == "System.Nullable`1[System.Int32]"|| propertyValue.PropertyType.ToString() == "System.Nullable`1[System.Stirng]"
+                                || propertyValue.PropertyType.ToString() == "System.Nullable`1[System.Int64]"|| propertyValue.PropertyType.ToString() == "System.Nullable`1[System.Int16]"|| propertyValue.PropertyType.ToString() == "System.Nullable`1[System.Decimal]"
+                                || propertyValue.PropertyType.ToString() == "System.Nullable`1[System.Double]"|| propertyValue.PropertyType.ToString() == "System.Nullable`1[System.Boolean]"
+                                )
+                            {
+                                propertyValue.SetValue(obj, Convert.ChangeType(dr[propertyValue.Name], Nullable.GetUnderlyingType(propertyValue.PropertyType) ?? propertyValue.PropertyType), null);
+                            }
+                            else
+                            {
+                                propertyValue.SetValue(obj, Convert.ChangeType(dr[propertyValue.Name], propertyValue.PropertyType), null);
+                            }
+                        }
+                    }
+
+
+
+                }
+                return obj;
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public static DataTable Delete(this DataTable table, string filter)
+        {
+            table.Select(filter).Delete();
+           table.AcceptChanges();
+            return table;
+        }
+        public static void Delete(this IEnumerable<DataRow> rows)
+        {
+            foreach (var row in rows)
+                row.Delete();
+        }
+
+        public static DataTable UpdateDataTable(this DataTable table, int index, DataRow UpdateDr)
+        {
+            try
+            {
+                foreach (DataColumn colmn in UpdateDr.Table.Columns)
+                {
+                    if (UpdateDr[colmn.ColumnName] != null)
+                    {
+                        table.Rows[index][colmn.ColumnName] = UpdateDr[colmn.ColumnName];
+                    }
+                }
+                return table;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+       
+    }
